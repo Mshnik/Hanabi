@@ -11,14 +11,23 @@ import java.util.List;
  */
 public abstract class Player {
 
-  private List<Card> hand;
+  private final List<Card> hand;
+  private int id;
   private Game game;
 
   protected Player() {
     hand = new ArrayList<>();
   }
 
-  protected Game getGame() {
+  protected final int getId() {
+    return id;
+  }
+
+  void setId(int id) {
+    this.id = id;
+  }
+
+  protected final Game getGame() {
     return game;
   }
 
@@ -26,8 +35,12 @@ public abstract class Player {
     game = g;
   }
 
-  public List<Card> getHand() {
+  List<Card> getHand() {
     return Collections.unmodifiableList(hand);
+  }
+
+  protected final List<Card> getHand(int playerId) {
+    return game.getPlayerHand(this, playerId);
   }
 
   void drawCard(Deck d) throws EmptyDeckException {
@@ -40,14 +53,10 @@ public abstract class Player {
     }
   }
 
-  abstract void receiveInformation(Player source, Player target, Information information);
+  abstract protected void receiveInformation(Player source, Player target, Information information);
 
-  final void removeCardFromHand(Card c) {
-    if (hand.contains(c)) {
-      hand.remove(c);
-    } else {
-      throw new RuntimeException("Can't remove " + c + " don't have it.");
-    }
+  final Card removeCardFromHand(int index) {
+    return hand.remove(index);
   }
 
   abstract protected Turn doTurn(Game g);

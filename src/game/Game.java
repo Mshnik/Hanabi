@@ -31,8 +31,10 @@ public final class Game {
     discard = new ArrayList<>();
 
     this.players = new LinkedList<>();
+    int id = 0;
     for(Player p : players) {
       this.players.add(p);
+      p.setId(id++);
       p.setGame(this);
       try {
         if (this.players.size() < 4) {
@@ -58,6 +60,18 @@ public final class Game {
 
   public List<Card> getDiscard() {
     return Collections.unmodifiableList(discard);
+  }
+
+  List<Card> getPlayerHand(Player requestingPlayer, int targetId) {
+    if (requestingPlayer.getId() == targetId) {
+      throw new RuntimeException("Can't get your own hand");
+    }
+    for (Player p : players) {
+      if (p.getId() == targetId) {
+        return p.getHand();
+      }
+    }
+    throw new RuntimeException("Illegal Player ID " + targetId + ", no such player.");
   }
 
   private void checkGiveInformation() {
@@ -95,14 +109,14 @@ public final class Game {
     return true;
   }
 
-  public boolean runTurn() {
+  boolean runTurn() {
     Player currentPlayer = players.remove(0);
     Turn turn = currentPlayer.doTurn(this);
     switch (turn.turnEnum) {
       case PLAY_CARD:
       case DISCARD_CARD:
-        currentPlayer.removeCardFromHand(turn.card);
-        playOrDiscardCard(turn.card, turn.turnEnum);
+        Card c = currentPlayer.removeCardFromHand(turn.index);
+        playOrDiscardCard(c, turn.turnEnum);
         try {
           currentPlayer.drawCard(deck);
         } catch (Deck.EmptyDeckException e) {
