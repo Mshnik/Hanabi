@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  *
  */
-public final class Deck {
+final class Deck {
 
   private static Map<Number, Integer> START_COUNT_BY_NUMBER;
 
@@ -25,10 +25,10 @@ public final class Deck {
 
   private List<Card> cards;
 
-  public Deck() {
+  Deck() {
     cards = new LinkedList<>();
     for (Card c : Card.getAllCards()) {
-      for (int i = 0; i < START_COUNT_BY_NUMBER.get(c.number); i++) {
+      for (int i = 0; i < START_COUNT_BY_NUMBER.get(c._2); i++) {
         cards.add(c.copy());
       }
     }
@@ -36,7 +36,11 @@ public final class Deck {
     Collections.shuffle(cards);
   }
 
-  public Card drawTopCard() throws EmptyDeckException {
+  int size() {
+    return cards.size();
+  }
+
+  Card drawTopCard() throws EmptyDeckException {
     if (cards.isEmpty()) {
       throw new EmptyDeckException();
     }
@@ -44,5 +48,5 @@ public final class Deck {
   }
 
 
-  public static class EmptyDeckException extends Exception {}
+  static class EmptyDeckException extends Exception {}
 }

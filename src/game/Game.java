@@ -11,6 +11,7 @@ import java.util.*;
 public final class Game {
 
   private Map<Color, Number> board;
+  private List<TurnResult> playHistory;
   private Deck deck;
   private List<Card> discard;
 
@@ -23,6 +24,7 @@ public final class Game {
 
 
   public Game(Player... players) {
+    playHistory = new ArrayList<>();
     board = new HashMap<>();
     for(Color c: Color.values()) {
       board.put(c, null);
@@ -58,8 +60,16 @@ public final class Game {
     return deck;
   }
 
+  public int getDeckSize() {
+    return deck.size();
+  }
+
   public List<Card> getDiscard() {
     return Collections.unmodifiableList(discard);
+  }
+
+  public List<TurnResult> getPlayHistory() {
+    return Collections.unmodifiableList(playHistory);
   }
 
   List<Card> getPlayerHand(Player requestingPlayer, int targetId) {
@@ -84,8 +94,10 @@ public final class Game {
   private void playOrDiscardCard(Card c, Turn.TurnEnum turnEnum) {
     switch (turnEnum) {
       case PLAY_CARD:
-        if (board.get(c.color).inc() == c.number) {
-          board.put(c.color, c.number);
+        Number currentNumberForColor = board.get(c._1);
+        if (currentNumberForColor == null && c._2 == Number.ONE ||
+            currentNumberForColor != null && currentNumberForColor.inc() == c._2) {
+          board.put(c._1, c._2);
         } else {
           discard.add(c);
           fuseCounters--;
@@ -109,13 +121,34 @@ public final class Game {
     return true;
   }
 
-  boolean runTurn() {
+  public int score() {
+    int score = 0;
+    for (Number n : board.values()) {
+      if (n != null) {
+        score += n.score();
+      }
+    }
+    return score;
+  }
+
+  public void runToCompletion(boolean print) {
+    TurnResult result;
+    do {
+      result = runTurn();
+      if (print) {
+        System.out.println(result);
+      }
+    } while(! result._5);
+  }
+
+  TurnResult runTurn() {
     Player currentPlayer = players.remove(0);
     Turn turn = currentPlayer.doTurn(this);
+    Card c = null;
     switch (turn.turnEnum) {
       case PLAY_CARD:
       case DISCARD_CARD:
-        Card c = currentPlayer.removeCardFromHand(turn.index);
+        c = currentPlayer.removeCardFromHand(turn.index);
         playOrDiscardCard(c, turn.turnEnum);
         try {
           currentPlayer.drawCard(deck);
@@ -129,18 +162,18 @@ public final class Game {
         break;
       case TELL_INFORMATION:
         checkGiveInformation();
-        turn.targetPlayer.receiveInformation(currentPlayer, turn.targetPlayer, turn.information);
+        turn.targetPlayer.receiveInformation(currentPlayer.getId(), turn.targetPlayer.getId(), turn.information);
         for(Player p : players) {
           if (p != currentPlayer && p != turn.targetPlayer) {
-            p.receiveInformation(currentPlayer, turn.targetPlayer, turn.information);
+            p.receiveInformation(currentPlayer.getId(), turn.targetPlayer.getId(), turn.information);
           }
         }
         break;
     }
-    if (isVictory() || fuseCounters == 0 || (deckEmpty && bonusTurns == 0)) {
-      return true;
-    }
+    boolean gameOver = isVictory() || fuseCounters == 0 || (deckEmpty && bonusTurns == 0);
     players.add(currentPlayer);
-    return false;
+    TurnResult t = new TurnResult(turn.turnEnum, turn.index, c, turn.information, gameOver);
+    playHistory.add(t);
+    return t;
   }
 }

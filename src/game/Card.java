@@ -1,5 +1,7 @@
 package game;
 
+import common.types.Tuple2;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -7,7 +9,7 @@ import java.util.Objects;
 /**
  *
  */
-public final class Card {
+public final class Card extends Tuple2<Card.Color, Card.Number> {
 
   enum Color {
     BLUE,
@@ -27,10 +29,11 @@ public final class Card {
     public Number inc() {
       return Number.values()[ordinal() + 1];
     }
-  }
 
-  public final Color color;
-  public final Number number;
+    public int score() {
+      return ordinal() + 1;
+    }
+  }
 
   public static List<Card> getAllCards() {
     List<Card> cards = new ArrayList<>();
@@ -43,28 +46,10 @@ public final class Card {
   }
 
   public Card(Color color, Number number) {
-    this.color = color;
-    this.number = number;
+    super(color, number);
   }
 
   public Card copy() {
-    return new Card(color, number);
-  }
-
-  public String toString() {
-    return color.toString() + ", " + number.toString();
-  }
-
-  public boolean equals(Object o) {
-    if (! (o instanceof Card)) {
-      return false;
-    } else {
-      Card c = (Card)o;
-      return color == c.color && number == c.number;
-    }
-  }
-
-  public int hashCode() {
-    return Objects.hash(color, number);
+    return new Card(_1, _2);
   }
 }

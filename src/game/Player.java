@@ -53,7 +53,7 @@ public abstract class Player {
     }
   }
 
-  abstract protected void receiveInformation(Player source, Player target, Information information);
+  abstract protected void receiveInformation(int sourcePlayerId, int targetPlayerId, Information information);
 
   final Card removeCardFromHand(int index) {
     return hand.remove(index);
