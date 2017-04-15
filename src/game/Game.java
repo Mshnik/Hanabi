@@ -2,11 +2,8 @@ package game;
 
 import game.Card.Color;
 import game.Card.Number;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 /**
  *
@@ -21,6 +18,9 @@ public final class Game {
   private int timeCounters = 8;
   private int fuseCounters = 3;
 
+  private boolean deckEmpty = false;
+  private int bonusTurns = 0;
+
 
   public Game(Player... players) {
     board = new HashMap<>();
@@ -33,11 +33,14 @@ public final class Game {
     this.players = new LinkedList<>();
     for(Player p : players) {
       this.players.add(p);
-      if (this.players.size() < 4) {
-        p.drawCards(deck, 5);
-      } else {
-        p.drawCards(deck, 4);
-      }
+      p.setGame(this);
+      try {
+        if (this.players.size() < 4) {
+          p.drawCards(deck, 5);
+        } else {
+          p.drawCards(deck, 4);
+        }
+      } catch(Deck.EmptyDeckException e) {}
     }
   }
 
@@ -53,26 +56,33 @@ public final class Game {
     return deck;
   }
 
-  void checkGiveInformation() {
+  public List<Card> getDiscard() {
+    return Collections.unmodifiableList(discard);
+  }
+
+  private void checkGiveInformation() {
     if (timeCounters == 0) {
       throw new RuntimeException("Can't give info without time counter");
     }
     timeCounters--;
   }
 
-  void discardCard(Card c) {
-    discard.add(c);
-    timeCounters++;
-  }
-
-  void playCard(Card c) {
-    if (board.get(c.color).inc() == c.number) {
-      board.put(c.color, c.number);
-    } else {
-      fuseCounters--;
-      if (fuseCounters == 0) {
-        throw new RuntimeException("YOU LOSE HAHAHAHA");
-      }
+  private void playOrDiscardCard(Card c, Turn.TurnEnum turnEnum) {
+    switch (turnEnum) {
+      case PLAY_CARD:
+        if (board.get(c.color).inc() == c.number) {
+          board.put(c.color, c.number);
+        } else {
+          discard.add(c);
+          fuseCounters--;
+        }
+        break;
+      case DISCARD_CARD:
+        discard.add(c);
+        timeCounters++;
+        break;
+      case TELL_INFORMATION:
+        throw new RuntimeException();
     }
   }
 
@@ -85,10 +95,38 @@ public final class Game {
     return true;
   }
 
-
-  public void runTurn() {
+  public boolean runTurn() {
     Player currentPlayer = players.remove(0);
-    currentPlayer.doTurn(this);
+    Turn turn = currentPlayer.doTurn(this);
+    switch (turn.turnEnum) {
+      case PLAY_CARD:
+      case DISCARD_CARD:
+        currentPlayer.removeCardFromHand(turn.card);
+        playOrDiscardCard(turn.card, turn.turnEnum);
+        try {
+          currentPlayer.drawCard(deck);
+        } catch (Deck.EmptyDeckException e) {
+          if (! deckEmpty) {
+            deckEmpty = true;
+            bonusTurns = players.size() + 1;
+          }
+          bonusTurns--;
+        }
+        break;
+      case TELL_INFORMATION:
+        checkGiveInformation();
+        turn.targetPlayer.receiveInformation(currentPlayer, turn.targetPlayer, turn.information);
+        for(Player p : players) {
+          if (p != currentPlayer && p != turn.targetPlayer) {
+            p.receiveInformation(currentPlayer, turn.targetPlayer, turn.information);
+          }
+        }
+        break;
+    }
+    if (isVictory() || fuseCounters == 0 || (deckEmpty && bonusTurns == 0)) {
+      return true;
+    }
     players.add(currentPlayer);
+    return false;
   }
 }

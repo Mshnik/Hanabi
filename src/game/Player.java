@@ -12,56 +12,43 @@ import java.util.List;
 public abstract class Player {
 
   private List<Card> hand;
+  private Game game;
 
   protected Player() {
     hand = new ArrayList<>();
+  }
+
+  protected Game getGame() {
+    return game;
+  }
+
+  void setGame(Game g) {
+    game = g;
   }
 
   public List<Card> getHand() {
     return Collections.unmodifiableList(hand);
   }
 
-  void drawCard(Deck d) {
-    try {
+  void drawCard(Deck d) throws EmptyDeckException {
       hand.add(d.drawTopCard());
-    } catch (EmptyDeckException e) {}
   }
 
-  void drawCards(Deck d, int cards) {
+  void drawCards(Deck d, int cards) throws EmptyDeckException {
     for(int i = 0; i < cards; i++) {
       drawCard(d);
     }
   }
 
-  abstract void getInformation(Player source, Player target, Information information);
+  abstract void receiveInformation(Player source, Player target, Information information);
 
-  protected final void giveInformation(Game g, Player targetPlayer, Information information, Player... otherPlayers) {
-    g.checkGiveInformation();
-    targetPlayer.getInformation(this, targetPlayer, information);
-    for(Player p : otherPlayers) {
-      p.getInformation(this, targetPlayer, information);
-    }
-  }
-
-  protected final void playCard(Game g, Card c) {
+  final void removeCardFromHand(Card c) {
     if (hand.contains(c)) {
       hand.remove(c);
-      g.playCard(c);
-      drawCard(g.getDeck());
     } else {
-      throw new RuntimeException("Can't play " + c + " don't have it.");
+      throw new RuntimeException("Can't remove " + c + " don't have it.");
     }
   }
 
-  protected final void discardCard(Game g, Card c) {
-    if (hand.contains(c)) {
-      hand.remove(c);
-      g.discardCard(c);
-      drawCard(g.getDeck());
-    } else {
-      throw new RuntimeException("Can't play " + c + " don't have it.");
-    }
-  }
-
-  abstract protected void doTurn(Game g);
+  abstract protected Turn doTurn(Game g);
 }
