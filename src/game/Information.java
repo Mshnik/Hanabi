@@ -1,30 +1,34 @@
 package game;
 
 import game.Card.Color;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
  */
 public final class Information {
 
-  private int[] handIndices;
   public final Color color;
-  public final Number number;
+  public final Card.Number number;
 
-  public Information(Color color, int... handIndices) {
+  private List<Integer> handIndices;
+
+  public Information(Color color) {
     this.color = color;
     this.number = null;
-    this.handIndices = Arrays.copyOf(handIndices, handIndices.length);
   }
 
-  public Information(Number number, int... handIndices) {
+  public Information(Card.Number number) {
     this.number = number;
     this.color = null;
-    this.handIndices = Arrays.copyOf(handIndices, handIndices.length);
   }
 
-  public int[] getHandIndices() {
-    return Arrays.copyOf(handIndices, handIndices.length);
+  void setHandIndices(List<Integer> handIndices) {
+    this.handIndices = handIndices;
+  }
+
+  public List<Integer> getHandIndices() {
+    return Collections.unmodifiableList(handIndices);
   }
 }

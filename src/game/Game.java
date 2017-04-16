@@ -72,44 +72,59 @@ public final class Game {
     return Collections.unmodifiableList(playHistory);
   }
 
-  List<Card> getPlayerHand(Player requestingPlayer, int targetId) {
-    if (requestingPlayer.getId() == targetId) {
-      throw new RuntimeException("Can't get your own hand");
-    }
+  private Player getPlayer(int id) {
     for (Player p : players) {
-      if (p.getId() == targetId) {
-        return p.getHand();
+      if (p.getId() == id) {
+        return p;
       }
     }
-    throw new RuntimeException("Illegal Player ID " + targetId + ", no such player.");
+    throw new RuntimeException("Illegal Player ID " + id + ", no such player.");
   }
 
-  private void checkGiveInformation() {
+  List<Card> getPlayerHand(Player requestingPlayer, int targetId) {
+    if (requestingPlayer.getId() == targetId) {
+      throw new RuntimeException("Illegal play - Can't get your own hand");
+    }
+    return getPlayer(targetId).getHand();
+  }
+
+  private void checkGiveInformationAndSetHandIndices(Information information, Player targetPlayer) {
     if (timeCounters == 0) {
-      throw new RuntimeException("Can't give info without time counter");
+      throw new RuntimeException("Illegal play - Can't give info without time counter");
     }
     timeCounters--;
+
+    List<Integer> handIndices = new ArrayList<>();
+    for (int i = 0; i < targetPlayer.getHand().size(); i++) {
+      Card c = targetPlayer.getHand().get(i);
+      if (information.color == c._1 || information.number == c._2) {
+        handIndices.add(i);
+      }
+    }
+    information.setHandIndices(Collections.unmodifiableList(handIndices));
   }
 
-  private void playOrDiscardCard(Card c, Turn.TurnEnum turnEnum) {
+  private boolean playOrDiscardCard(Card c, Turn.TurnEnum turnEnum) {
     switch (turnEnum) {
       case PLAY_CARD:
         Number currentNumberForColor = board.get(c._1);
         if (currentNumberForColor == null && c._2 == Number.ONE ||
             currentNumberForColor != null && currentNumberForColor.inc() == c._2) {
           board.put(c._1, c._2);
+          return true;
         } else {
           discard.add(c);
           fuseCounters--;
+          return false;
         }
-        break;
       case DISCARD_CARD:
         discard.add(c);
         timeCounters++;
-        break;
+        return false;
       case TELL_INFORMATION:
         throw new RuntimeException();
     }
+    return false;
   }
 
   public boolean isVictory() {
@@ -138,18 +153,22 @@ public final class Game {
       if (print) {
         System.out.println(result);
       }
-    } while(! result._5);
+    } while(! result._7);
   }
 
   TurnResult runTurn() {
     Player currentPlayer = players.remove(0);
     Turn turn = currentPlayer.doTurn(this);
+
+
     Card c = null;
+    boolean hit = false;
+
     switch (turn.turnEnum) {
       case PLAY_CARD:
       case DISCARD_CARD:
         c = currentPlayer.removeCardFromHand(turn.index);
-        playOrDiscardCard(c, turn.turnEnum);
+        hit = playOrDiscardCard(c, turn.turnEnum);
         try {
           currentPlayer.drawCard(deck);
         } catch (Deck.EmptyDeckException e) {
@@ -161,7 +180,7 @@ public final class Game {
         }
         break;
       case TELL_INFORMATION:
-        checkGiveInformation();
+        checkGiveInformationAndSetHandIndices(turn.information, turn.targetPlayer);
         turn.targetPlayer.receiveInformation(currentPlayer.getId(), turn.targetPlayer.getId(), turn.information);
         for(Player p : players) {
           if (p != currentPlayer && p != turn.targetPlayer) {
@@ -172,7 +191,8 @@ public final class Game {
     }
     boolean gameOver = isVictory() || fuseCounters == 0 || (deckEmpty && bonusTurns == 0);
     players.add(currentPlayer);
-    TurnResult t = new TurnResult(turn.turnEnum, turn.index, c, turn.information, gameOver);
+    int targetPlayerId = turn.targetPlayer != null ? turn.targetPlayer.getId() : -1;
+    TurnResult t = new TurnResult(this, turn.turnEnum, turn.index, c, hit, turn.information, targetPlayerId, gameOver);
     playHistory.add(t);
     return t;
   }
