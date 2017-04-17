@@ -11,7 +11,7 @@ import java.util.Objects;
  */
 public final class Card extends Tuple2<Card.Color, Card.Number> {
 
-  enum Color {
+  public enum Color {
     BLUE,
     RED,
     WHITE,
@@ -19,7 +19,7 @@ public final class Card extends Tuple2<Card.Color, Card.Number> {
     YELLOW;
   }
 
-  enum Number {
+  public enum Number {
     ONE,
     TWO,
     THREE,
