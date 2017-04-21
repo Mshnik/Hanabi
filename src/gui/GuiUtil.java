@@ -10,7 +10,7 @@ import java.awt.*;
 class GuiUtil {
   private GuiUtil() {}
 
-  public static Color getColor(Card.Color color) {
+  static Color getColor(Card.Color color) {
     switch (color) {
       case BLUE:
         return Color.BLUE;
@@ -22,6 +22,19 @@ class GuiUtil {
         return Color.GREEN;
       case YELLOW:
         return Color.YELLOW;
+    }
+    return Color.BLACK;
+  }
+
+  static Color getTextColor(Card.Color color) {
+    switch (color) {
+      case BLUE:
+      case GREEN:
+      case RED:
+        return Color.WHITE;
+      case WHITE:
+      case YELLOW:
+        return Color.BLACK;
     }
     return Color.BLACK;
   }
