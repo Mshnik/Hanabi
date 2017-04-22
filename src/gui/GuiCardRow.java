@@ -12,70 +12,48 @@ import java.util.List;
  */
 class GuiCardRow extends JPanel {
 
-  private static final int MARGIN = 8;
+  private static final int MARGIN = 10;
 
   private List<GuiCard> cards;
   private final int length;
   private final GuiCardRowDirection direction;
+  private final Dimension preferredSize;
 
   GuiCardRow(int length, GuiCardRowDirection direction) {
     this.length = length;
     this.direction = direction;
     cards = new LinkedList<>();
 
-    setLayout(null);
     if (direction.isHorizontal()) {
-      setBounds(0, 0, (GuiCard.WIDTH + MARGIN) * length, GuiCard.HEIGHT + MARGIN);
+      setComponentOrientation(direction == GuiCardRowDirection.LEFT_TO_RIGHT ?
+          ComponentOrientation.LEFT_TO_RIGHT : ComponentOrientation.RIGHT_TO_LEFT);
+    }
+    setLayout(new BoxLayout(this, direction.isHorizontal() ? BoxLayout.LINE_AXIS : BoxLayout.PAGE_AXIS));
+    if (direction.isHorizontal()) {
+      preferredSize = new Dimension( (GuiCard.WIDTH + MARGIN) * length, GuiCard.HEIGHT + MARGIN);
     } else {
-      setBounds(0, 0, GuiCard.WIDTH + MARGIN, (GuiCard.HEIGHT + MARGIN) * length);
+      preferredSize = new Dimension(GuiCard.WIDTH + MARGIN, (GuiCard.HEIGHT + MARGIN) * length);
     }
 
-    setBackground(Color.DARK_GRAY);
+    setOpaque(false);
   }
 
   @Override
   public Dimension getMinimumSize() {
-    return getBounds().getSize();
+    return getPreferredSize();
   }
 
   @Override
   public Dimension getPreferredSize() {
-    return getBounds().getSize();
+    return new Dimension(preferredSize);
   }
 
   void addCard(Card c) {
     GuiCard g = new GuiCard(c);
-    cards.add(g);
     add(g);
+    cards.add(g);
     if (cards.size() > length) {
       remove(cards.remove(0));
-    }
-
-    int x = MARGIN/2;
-    int y = MARGIN/2;
-    int xInc = 0;
-    int yInc = 0;
-    switch (direction) {
-      case LEFT_TO_RIGHT:
-        xInc = GuiCard.WIDTH + MARGIN;
-        break;
-      case TOP_TO_BOTTOM:
-        yInc = GuiCard.HEIGHT + MARGIN;
-        break;
-      case RIGHT_TO_LEFT:
-        x = GuiCard.WIDTH * (length - 1) + MARGIN/2;
-        xInc = -(GuiCard.WIDTH + MARGIN);
-        break;
-      case BOTTOM_TO_TOP:
-        y = GuiCard.HEIGHT * (length - 1) + MARGIN/2;
-        yInc = -(GuiCard.HEIGHT + MARGIN);
-        break;
-    }
-
-    for (GuiCard guiCard : cards) {
-      guiCard.setLocation(x, y);
-      x += xInc;
-      y += yInc;
     }
   }
 

@@ -14,27 +14,30 @@ public class BoardPanel extends JPanel {
 
   private final List<Card> cards = Card.getAllCards();
 
+  private GuiCardRow row;
+  private JButton button;
+
   BoardPanel() {
-
-    add(new GuiCard(Card.getAllCards().get(0)), BorderLayout.NORTH);
-
-    GuiCardRow row = new GuiCardRow(4, GuiCardRow.GuiCardRowDirection.LEFT_TO_RIGHT);
+    row = new GuiCardRow(4, GuiCardRow.GuiCardRowDirection.RIGHT_TO_LEFT);
     add(row, BorderLayout.CENTER);
 
-    JButton button = new JButton("add card");
-    button.addActionListener((e) -> {
-      Card c = cards.get(new Random().nextInt(cards.size()));
-      row.addCard(c);
-    });
+    button = new JButton("add card");
     add(button, BorderLayout.SOUTH);
   }
 
 
   public static void main(String[] args) {
     JFrame frame = new JFrame();
-    frame.getContentPane().add(new BoardPanel(), BorderLayout.CENTER);
+    BoardPanel b = new BoardPanel();
+    frame.getContentPane().add(b, BorderLayout.CENTER);
     frame.pack();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+    b.button.addActionListener((e) -> {
+      Card c = b.cards.get(new Random().nextInt(b.cards.size()));
+      b.row.addCard(c);
+      frame.pack();
+    });
   }
 }
