@@ -22,6 +22,13 @@ public final class Game {
   private boolean deckEmpty = false;
   private int bonusTurns = 0;
 
+  public static int getStartingHandSizeForPlayerCount(int playerCount) {
+    if (playerCount < 4) {
+      return 5;
+    } else {
+      return 4;
+    }
+  }
 
   public Game(Player... players) {
     playHistory = new ArrayList<>();
@@ -39,11 +46,7 @@ public final class Game {
       p.setId(id++);
       p.setGame(this);
       try {
-        if (this.players.size() < 4) {
-          p.drawCards(deck, 5);
-        } else {
-          p.drawCards(deck, 4);
-        }
+        p.drawCards(deck, getStartingHandSizeForPlayerCount(players.length));
       } catch(Deck.EmptyDeckException e) {}
     }
   }

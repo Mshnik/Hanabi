@@ -23,10 +23,17 @@ class GuiCard extends JPanel {
     }
   }
 
+  private Card card;
+
   GuiCard(Card card) {
+    this.card = card;
     JLabel imgLabel = new JLabel();
     imgLabel.setIcon(imageMap.get(card));
     add(imgLabel);
     setOpaque(false);
+  }
+
+  Card getCard() {
+    return card;
   }
 }
