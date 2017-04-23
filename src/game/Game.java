@@ -16,7 +16,8 @@ public final class Game {
   private List<Card> discard;
 
   private List<Player> players;
-  private int timeCounters = 8;
+  private static final int MAX_TIME_COUNTERS = 8;
+  private int timeCounters = MAX_TIME_COUNTERS;
   private int fuseCounters = 3;
 
   private boolean deckEmpty = false;
@@ -104,6 +105,9 @@ public final class Game {
         handIndices.add(i);
       }
     }
+    if (handIndices.size() == 0) {
+      throw new RuntimeException("Illegal play - can't give info with no applicable cards");
+    }
     information.setHandIndices(Collections.unmodifiableList(handIndices));
   }
 
@@ -122,7 +126,7 @@ public final class Game {
         }
       case DISCARD_CARD:
         discard.add(c);
-        timeCounters++;
+        timeCounters = Math.min(timeCounters + 1, MAX_TIME_COUNTERS);
         return false;
       case TELL_INFORMATION:
         throw new RuntimeException();
