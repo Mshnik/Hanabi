@@ -43,6 +43,11 @@ class GuiCardRow extends JPanel {
     return new Dimension(preferredSize);
   }
 
+  @Override
+  public Dimension getMaximumSize() {
+    return new Dimension(preferredSize);
+  }
+
   int getRows() {
     return rows;
   }

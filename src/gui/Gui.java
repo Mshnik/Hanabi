@@ -1,6 +1,7 @@
 package gui;
 
 import game.Card;
+import game.TurnResult;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,8 +20,9 @@ public class Gui extends JFrame {
   private GuiCardRow discardPanel;
 
   private JTextArea printArea;
+  private boolean gameOver;
 
-  public Gui(int playerCount, Runnable turnAction) {
+  public Gui(int playerCount, Supplier<TurnResult> turnAction) {
     boardPanel = new BoardPanel();
     handPanel = new HandPanel(playerCount);
     deckLabel = new JLabel();
@@ -48,7 +50,16 @@ public class Gui extends JFrame {
     bottomPanel.add(printScrollPane);
 
     JButton turnButton = new JButton("Take Turn");
-    turnButton.addActionListener((e) -> turnAction.run());
+    turnButton.addActionListener((e) -> {
+      if (! gameOver) {
+        TurnResult result = turnAction.get();
+        if (result._7) {
+          gameOver = true;
+          turnButton.setEnabled(false);
+          print("Game Over");
+        }
+      }
+    });
 
     add(boardPanel, BorderLayout.NORTH);
     add(handPanel, BorderLayout.CENTER);
@@ -69,12 +80,12 @@ public class Gui extends JFrame {
 
   public void addCard(int playerIndex, Card c) {
     handPanel.draw(playerIndex, c);
-    repaint();
+    pack();
   }
 
   public void removeCard(int playerIndex, int cardIndex) {
     handPanel.remove(playerIndex, cardIndex);
-    repaint();
+    pack();
   }
 
   public void setDeckSize(int deckSize) {
