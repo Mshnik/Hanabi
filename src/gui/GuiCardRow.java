@@ -68,20 +68,9 @@ class GuiCardRow extends JPanel {
     }
   }
 
-  boolean removeCard(Card c) {
-    GuiCard toRemove = null;
-    for (GuiCard g : cards) {
-      if (g.getCard().equals(c)) {
-        toRemove = g;
-        break;
-      }
-    }
-    if (toRemove != null) {
-      remove(toRemove);
-      cards.remove(toRemove);
-      return true;
-    } else {
-      return false;
-    }
+  void removeCardAtIndex(int cardIndex) {
+    GuiCard toRemove = cards.get(cardIndex);
+    remove(toRemove);
+    cards.remove(toRemove);
   }
 }

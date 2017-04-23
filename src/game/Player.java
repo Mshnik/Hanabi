@@ -43,8 +43,10 @@ public abstract class Player {
     return game.getPlayerHand(this, playerId);
   }
 
-  void drawCard(Deck d) throws EmptyDeckException {
-      hand.add(d.drawTopCard());
+  Card drawCard(Deck d) throws EmptyDeckException {
+    Card c = d.drawTopCard();
+    hand.add(c);
+    return c;
   }
 
   void drawCards(Deck d, int cards) throws EmptyDeckException {

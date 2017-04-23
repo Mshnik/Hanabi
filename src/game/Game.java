@@ -2,13 +2,19 @@ package game;
 
 import game.Card.Color;
 import game.Card.Number;
+import gui.Gui;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.*;
 
 /**
  *
  */
 public final class Game {
+
+  private Gui gui;
 
   private Map<Color, Number> board;
   private List<TurnResult> playHistory;
@@ -118,15 +124,26 @@ public final class Game {
         if (currentNumberForColor == null && c._2 == Number.ONE ||
             currentNumberForColor != null && currentNumberForColor.inc() == c._2) {
           board.put(c._1, c._2);
+          if (gui != null) {
+            gui.play(c);
+          }
           return true;
         } else {
           discard.add(c);
           fuseCounters--;
+          if (gui != null) {
+            gui.discard(c);
+            gui.setFuseCounters(fuseCounters);
+          }
           return false;
         }
       case DISCARD_CARD:
         discard.add(c);
         timeCounters = Math.min(timeCounters + 1, MAX_TIME_COUNTERS);
+        if (gui != null) {
+          gui.discard(c);
+          gui.setTimeCounters(timeCounters);
+        }
         return false;
       case TELL_INFORMATION:
         throw new RuntimeException();
@@ -166,7 +183,7 @@ public final class Game {
   TurnResult runTurn() {
     Player currentPlayer = players.remove(0);
     Turn turn = currentPlayer.doTurn(this);
-
+    print("P." + currentPlayer.getId() + ":" + turn);
 
     Card c = null;
     boolean hit = false;
@@ -176,8 +193,15 @@ public final class Game {
       case DISCARD_CARD:
         c = currentPlayer.removeCardFromHand(turn.index);
         hit = playOrDiscardCard(c, turn.turnEnum);
+        if (gui != null) {
+          gui.removeCard(currentPlayer.getId(), turn.index);
+        }
         try {
-          currentPlayer.drawCard(deck);
+          Card c2 = currentPlayer.drawCard(deck);
+          if (gui != null) {
+            gui.addCard(currentPlayer.getId(), c2);
+            gui.setDeckSize(deck.size());
+          }
         } catch (Deck.EmptyDeckException e) {
           if (! deckEmpty) {
             deckEmpty = true;
@@ -202,5 +226,28 @@ public final class Game {
     TurnResult t = new TurnResult(this, turn.turnEnum, turn.index, c, hit, turn.information, targetPlayerId, gameOver);
     playHistory.add(t);
     return t;
+  }
+
+  public Game withGui() {
+    if (gui == null) {
+      gui = new Gui(players.size(), this::runTurn);
+      for (Player p : players) {
+        for (Card c: p.getHand()) {
+          gui.addCard(p.getId(), c);
+        }
+      }
+      gui.setDeckSize(deck.size());
+      gui.setTimeCounters(timeCounters);
+      gui.setFuseCounters(fuseCounters);
+    }
+    return this;
+  }
+
+  private void print(String s) {
+    if (gui == null) {
+      System.out.println(s);
+    } else {
+      gui.print(s);
+    }
   }
 }

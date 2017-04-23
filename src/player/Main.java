@@ -15,8 +15,6 @@ public class Main {
     Player p3 = new RandomPlayer();
     Player p4 = new RandomPlayer();
 
-    Game g = new Game(p1, p2, p3, p4);
-    g.runToCompletion(true);
-    System.out.println(g.score());
+    Game g = new Game(p1, p2, p3, p4).withGui();
   }
 }
